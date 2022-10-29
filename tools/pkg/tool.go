@@ -14,13 +14,15 @@ type ChainItem struct {
 	Line  int
 	Chain string
 	Step  string
+	Steps []int
 	Desc  string
 }
 
 func (c *ChainItem) Show() string {
 	ps := strings.Split(c.File, "/")
 	lastFile := ps[len(ps)-1]
-	return fmt.Sprintf("%s %v %s %s", lastFile, c.Line, c.Step, c.Desc)
+	space := strings.Repeat("  ", len(c.Steps))
+	return fmt.Sprintf("%s %s:%v %s %s", space, lastFile, c.Line, c.Step, c.Desc)
 }
 
 func ParseChain(input string) (*ChainItem, error) {
@@ -52,12 +54,17 @@ func ParseChain(input string) (*ChainItem, error) {
 	}
 	chain = strings.Fields(meta)[0]
 	step = strings.Fields(meta)[1]
+	steps, err := parseStep(step)
+	if err != nil {
+		return nil, err
+	}
 	desc = strings.Trim(left, " ")
 	return &ChainItem{
 		File:  file,
 		Line:  line,
 		Chain: chain,
 		Step:  step,
+		Steps: steps,
 		Desc:  desc,
 	}, nil
 }
@@ -161,18 +168,18 @@ func is_left_first(left []int, right []int) bool {
 }
 
 func (c *Chain) sort() error {
-	steps := map[string][]int{}
-	for _, c := range c.items {
-		s, err := parseStep(c.Step)
-		if err != nil {
-			return err
-		}
-		steps[c.Step] = s
-	}
+	// steps := map[string][]int{}
+	// for _, c := range c.items {
+	// 	s, err := parseStep(c.Step)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	steps[c.Step] = s
+	// }
 
 	sort.SliceStable(c.items, func(i, j int) bool {
-		left := steps[c.items[i].Step]
-		right := steps[c.items[j].Step]
+		left := c.items[i].Steps
+		right := c.items[j].Steps
 		ret := is_left_first(left, right)
 		// fmt.Printf("%v %v %v %v %v \n", left, right, ret, c.items[i].Step, c.items[j].Step)
 		return ret
